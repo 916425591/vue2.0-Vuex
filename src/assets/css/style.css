@@ -1,0 +1,43 @@
+body{
+  float: left;
+  width: 100%;
+  margin: 0px;
+  padding: 0px;
+}
+input,button,select,textarea{outline:none;}
+button{cursor: pointer;}
+.w-100{
+  width: 100%;
+}
+ul,li{
+  list-style: none;
+  padding: 0px;
+}
+.login-input input{
+  background: #465075 !important;
+  border-color: transparent;
+  padding: 0 15px 0px 32px;
+  color: #fff;
+}
+
+/*表格公有化*/
+.el-table .warning-row {
+  background: #f0f9eb;
+}
+.el-table .success-row {
+  background: #fff;
+}
+
+/*表格有问题*/
+.el-form-item__content {
+  line-height: 40px;
+  position: relative;
+  font-size: 14px;
+  height: 40px;
+}
+/*消息提示*/
+.el-badge__content.is-fixed {
+  position: absolute;
+  top: 0;
+  right: 4px;
+}
