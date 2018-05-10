@@ -4,7 +4,7 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'//引入路由设置
 import Vuex from 'vuex' // 引入状态管理框架
-import store from './store/store';
+import store from './store/index';
 import $ from 'jquery'  //引入
 import zTree from 'ztree' //引入zTree小兄弟 //import store from './vuex/store'
 import axios from 'axios' // 引入http管理

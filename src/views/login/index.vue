@@ -2,8 +2,8 @@
   <div class="landing">
     <div class="login-con">
       <div class="logo-title">
-        <img src="../assets/images/logo.png">
-        <h2>四川交管项目</h2>
+        <img src="~@/assets/images/logo.png">
+        <h2>XXX交管项目</h2>
       </div>
       <el-form :model="ruleForm2" status-icon :rules="rules2" ref="ruleForm2"  class="demo-ruleForm logon-form">
         <el-form-item  prop="pass">
