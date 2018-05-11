@@ -1,4 +1,4 @@
-@import ' ./variables.scss';
+@import './variables.scss'; //固定颜色
 @mixin colorBtn($color){
   background: $color;
   &:hover{

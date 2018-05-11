@@ -10,6 +10,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "apisauce": "^0.14.3",
     "axios": "^0.18.0",
     "element-ui": "^2.2.0",
     "jquery": "^3.3.1",

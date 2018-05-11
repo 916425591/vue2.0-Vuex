@@ -2,3 +2,18 @@
 @import './element-ui.scss'; //可能会重构一些element里面的默认css
 @import './btn.scss'; //一些个性的btm
 @import './sidebar.scss'; //侧边栏
+@import './mixin.scss'; //全局css方法
+body{
+  margin: 0px;
+  padding: 0px;
+}
+.clearfix {
+  &:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+  }
+}
