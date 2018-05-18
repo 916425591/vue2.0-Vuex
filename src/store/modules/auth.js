@@ -1,6 +1,5 @@
-export const STORAGE_KEY = 'user_pass';
+export const STORAGE_KEY = 'userInfo';
 let syncedData={//根据项目的添加来添加
-  isLoggedIn:false,
   userName:null,
   accessToken:null
 }
@@ -16,17 +15,16 @@ if (localStorage.getItem(STORAGE_KEY)) {
 
 const state = Object.assign(syncedData, notSyncedData);
 const mutations ={
-  'UPDATE_AUTH': (state, auth) => {//初始化
-    state.isLoggedIn = auth.isLoggedIn;
-    state.accessToken = auth.accessToken;
+  'UPDATE_AUTH': (state, auth) => {//初始化获取
+    state.userName=auth.userName,
+      state.accessToken=auth.accessToken
   },
-  'UPDATE_USER_INFO': (state, userInfo) => {
+  'UPDATE_USER_INFO': (state, userInfo) => {//更新
     state.userName = userInfo.userName;
   },
-  'WEB_ALL_DATA':(state)=>{
-      state.isLoggedIn=false,
-      state.userName=null,
-      state.accessToken=null
+  'WEB_ALL_DATA':(state,auth)=>{//删除localStorage
+      state.userName=auth.userName,
+      state.accessToken=auth.accessToken
   }
 };
 const actions={};

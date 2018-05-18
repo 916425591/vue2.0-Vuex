@@ -10,11 +10,14 @@ import axios from 'axios' // 引入http管理
 import ElementUI from 'element-ui'//引入elementui
 import 'element-ui/lib/theme-chalk/index.css'//引入elementui
 import '@/styles/index.scss' // global css
+import Api from './api/api'
 Vue.config.productionTip = false
 
-Vue.prototype.$http = axios //全局变量
+Vue.prototype.Api = Api //全局变量
 Vue.use(ElementUI);
 Vue.use(Vuex);
+// 使用API 插件 this.$Api
+
 /* eslint-disable no-new */
 new Vue({
   el: '#app',

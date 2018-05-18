@@ -4,7 +4,10 @@
 
 <script>
     export default {
-        name: "index"
+        name: "index",
+        mounted(){
+          console.log(this.$store.state.auth.userName,)
+        }
     }
 </script>
 

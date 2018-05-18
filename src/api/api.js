@@ -1,43 +1,67 @@
-import {cretae} from 'apisauce' //共有处理异步跨域的请求 不懂请移步百度
-import  router from '../router'
+import axios from 'axios'
+import router from '../router'
 import store from '../store'
+import { Message } from 'element-ui'
+import {isAuthenticated} from '../util/auth'//缓存token
 import {
   API_ROOT,
-  DEFAULT_NETWORK_TIMEOUT,
+  ACCESS_TOKEN_EXPIRE_CODE,
+  WATING_TIME_BEFORE_REDIRECT,
   PROCESS_OK_CODE,
-  ACCESS_TOKEN_INVAILD_CODE,
-  ACCESS_TOKEN_EXPIRE_CODE
+  DEFAULT_NETWORK_TIMEOUT,
+  ACCESS_TOKEN_INVAILD_CODE
 } from '../util/config'
 
-
-// https://github.com/infinitered/apisauce
-const api = create({
+const api = axios.create({
   baseURL: API_ROOT,
   headers: {
     'Content-Type': 'application/json'
   },
   timeout: DEFAULT_NETWORK_TIMEOUT
 });
+/**
+ * @var{string} LOGIN_URL 用户登录地址
+ */
+const LOGIN_URL = 'login'
+export  default {
 
-// 非生产环境添加请求监视器便于在console 中查看请求信息
-const naviMonitor = (response) => console.log('响应如下： ', response);
-if (process.env.NODE_ENV !== 'production' && process.env.NODE_ENV !== 'testing') {
-  api.addMonitor(naviMonitor);
-  console.log(process.env)
-}
 
-import {isAuthenticated} from '../util/auth' //全局校验 token
-const SNS_LOGIN_URL = 'login/social'; //login登陆的全局接口
-
-export default { //抛出这些全局方法
-  /**
-   * 挂载到 Vue 对象，全局使用
-   * @param {Object} Vue 全局对象 Vue.
-   * @param {Object} options 插件配置.
+  /*
+   * 请求设置 Token
+   * @param {Object} request 为请求实例设置验证 Token
    * @return {void}
    */
-  install(Vue, options) {
-    Vue.prototype.$Api = Vue.Api = this
+  setAuthHeader(request) {
+    let accessToken = 'API_token';//实际应该是stor获取//目前是假的
+    if (!isAuthenticated(accessToken)) {
+      this._clearOut()
+    }
+    request.setHeader('Authorization', 'Bearer ' + accessToken)
+  },
+  /**
+   * 用户登陆
+   *
+   * @param {string} username 用户名
+   * @param {string} password 密码
+   * @param {string|null} redirect 重定向路由名称
+   * @param {string|null} inviteid 邀请UUID
+   * @return {Promise}
+   */
+  login(endUrl, method = 'post', data = {}, auth = true) {
+    return api[method.toLowerCase()](endUrl,data)
+      .then((response) => {
+        if (response.status == PROCESS_OK_CODE) {
+          let userData={
+            accessToken:response.data.accessToken,
+            userName:response.data.data[0].userName
+          }
+          store.commit('UPDATE_AUTH',userData);
+          router.push({name: 'charts'});
+          return response
+        }
+      }).catch((response) => {
+        console.log(response)
+      })
   },
   /**
    * 通用请求
@@ -48,27 +72,55 @@ export default { //抛出这些全局方法
    * @param {boolean} auth 使用token 授权
    * @return {void|Promise}
    */
+  makeRequestApi(endUrl, method = 'get', data = {}, auth = true){
+    return api[method.toLowerCase()](endUrl, data)
+      .then((response) => {
+            let processCode = response.status;
+            if (processCode !== PROCESS_OK_CODE) {
+              Message({
+                message: response.data.message,
+                type: 'error',
+                duration: 5 * 1000
+              })
+            } else {
+              Message({
+                message: response.data.message,
+                type: 'success',
+                duration: 2000
+              })
+              return response
+            }
+      })
+      .catch((error) => {
+        Message({
+          message: error.message,
+          type: 'error',
+          duration: 5 * 1000
+        })
+      })
+  },
+
   makeRequest(endUrl, method = 'get', data = {}, auth = true) {
-    if (auth) {
-      this.setAuthHeader(api)
-    }
+    // if (auth) {
+    //   this.setAuthHeader(api)
+    // }
     return api[method.toLowerCase()](endUrl, data)
       .then((response) => {
         if (response.ok === true) {
           // 检查业务情况
           let processCode = response.data.code;
-          if (processCode !== PROCESS_OK_CODE) {
-            if (auth === true && this._isInvalidToken(response)) {
-              // 因为 access_token 过期或其他原因导致的失败，刷新 token
-              return this._refreshToken().then((response) => {
-                return this.makeRequest(endUrl, method = 'get', data = {}, auth = true)
-              })
-            } else {
-              return response
-            }
-          } else {
-            return response
-          }
+          // if (processCode !== PROCESS_OK_CODE) {
+          //   if (auth === true && this._isInvalidToken(response)) {
+          //     // 因为 access_token 过期或其他原因导致的失败，刷新 token
+          //     return this._refreshToken().then((response) => {
+          //       return this.makeRequest(endUrl, method = 'get', data = {}, auth = true)
+          //     })
+          //   } else {
+          //     return response
+          //   }
+          // } else {
+          //   return response
+          // }
         } else {
           if (response.data) {
             let processCode = response.data.code;
@@ -88,161 +140,25 @@ export default { //抛出这些全局方法
             response.data = {
               'msg': response.problem
             };
-            console.log(response);
+            Message({
+              message: error.message,
+              type: 'error',
+              duration: 5 * 1000
+            })
             return response
           }
         }
       })
-      .catch((errorResponse) => {
-        console.log(errorResponse)
-      })
-  },
-  /**
-   * 为请求设置 Token
-   *
-   * @param {Object} request 为请求实例设置验证 Token
-   * @return {void}
-   */
-  setAuthHeader(request) {
-    let accessToken = store.state.auth.accessToken;
-    if (!isAuthenticated(accessToken)) {
-      this._clearOut()
-    }
-    request.setHeader('Authorization', 'Bearer ' + accessToken)
-  },
-  /**
-   * 检查 token 有效性
-   *
-   * @private
-   * @param {Object} response 服务器返回值
-   * @return {boolean}
-   */
-  _isInvalidToken(response) {
-    const processCode = response.data.code;
-    return (processCode === ACCESS_TOKEN_EXPIRE_CODE)
-  },
-  /**
-   * 用户登陆
-   *
-   * @param {string} username 用户名
-   * @param {string} password 密码
-   * @param {string|null} redirect 重定向路由名称
-   * @return {Promise}
-   */
-  login(username, password, redirect, inviteid = null) {
-    return api.post(LOGIN_URL,
-      {
-        'username': username,
-        'password': password,
-        'inviteUUID': inviteid
-      })
-      .then((response) => {
-        if (response.ok) {
-          // 检查业务情况
-          let processCode = response.data.code;
-          if (processCode !== PROCESS_OK_CODE) {
-            store.commit('WEB_ALL_DATA');
-            return response
-          } else {
-            this._storeToken(response);
-            if (redirect) {
-              setTimeout(() => {
-                router.push({name: redirect})
-              }, WATING_TIME_BEFORE_REDIRECT)
-            }
-            return response
-          }
-        } else {
-          store.commit('WEB_ALL_DATA');
-          if (!response.data) {
-            response.data = {
-              'msg': response.problem
-            }
-          }
-          return response
-        }
-      })
-      .catch((response) => {
-        console.log(response)
-      })
-  },
-  /**
-   * 用户登出
-   *
-   * 用户登出，清除所有本地授权数据，重定向至登陆
-   *
-   * @return {void|Promise}
-   */
-  logout() {
-    this.setAuthHeader(api);
-    return api.get(LOGOUT_URL)
-      .then((response) => {
-        if (response.ok) {
-          store.commit('WEB_ALL_DATA');
-          router.push({name: 'login'});
-          return response
-        } else {
-          store.commit('WEB_ALL_DATA');
-          router.push({name: 'login'});
-          return response
-        }
-      })
-      .catch((errorResponse) => {
-        console.log(errorResponse)
-      })
-  },
-  /**
-   * 获取当前用户信息
-   * @return {void|Promise}
-   */
-
-  getUserInfo() {
-    this.setAuthHeader(api);
-    return api.get(USER_INFO_URL)
-      .then((response) => {
-        if (response.ok === true) {
-          // 检查业务情况
-          // store.commit('SET_LASTGROUPUUID',response.data.data.lastGroupUUID)
-          store.commit('UPDATE_INFORM', response.data.data.inform);
-          let processCode = response.data.code;
-          if (processCode !== PROCESS_OK_CODE) {
-            if (this._isInvalidToken(response)) {
-              // 因为 access_token 过期或其他原因导致的失败，刷新 token
-              return this._refreshToken().then((response) => {
-                return this.getUserInfo()
-              })
-            } else {
-              this._clearOut();
-              return response
-            }
-          } else {
-            this._updateUserInfo(response);
-            return response
-          }
-        } else {
-          let processCode = response.data.code;
-          if (processCode !== PROCESS_OK_CODE) {
-            if (this._isInvalidToken(response)) {
-              // 因为 access_token 过期或其他原因导致的失败，刷新 token
-              return this._refreshToken().then((response) => {
-                return this.getUserInfo()
-              })
-            } else {
-              this._clearOut();
-              return response
-            }
-          } else {
-            return response
-          }
-          // this._clearOut()
-        }
-      })
-      .catch((errorResponse) => {
-        console.log(errorResponse)
+      .catch((error) => {
+        Message({
+          message: error.message,
+          type: 'error',
+          duration: 5 * 1000
+        })
       })
   },
   // 暴露 axios 实例供测试和手动构造请求
   axiosInstance: api.axiosInstance,
   store: store
-}
 
+}

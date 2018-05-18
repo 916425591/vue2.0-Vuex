@@ -7,11 +7,11 @@
       <el-form :model="userInfo" status-icon :rules="rules2" ref="userInfo" class="demo-ruleForm logon-form">
         <el-form-item prop="name">
           <i class="fa fa-user logo-i"></i>
-          <el-input class="login-input" type="text" v-model="userInfo.name" auto-complete="off"></el-input>
+          <el-input class="login-input" type="text" v-model="userInfo.userName" auto-complete="off"></el-input>
         </el-form-item>
         <el-form-item prop="pwd">
           <i class="fa fa-lock logo-i"></i>
-          <el-input class="login-input" type="password" v-model="userInfo.pwd" auto-complete="off"></el-input>
+          <el-input class="login-input" type="password" v-model="userInfo.password" auto-complete="off"></el-input>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" style="width: 100%;" class="logo-button login-enlarge" :loading="loading" @click="submitForm('userInfo')">登陆</el-button>
@@ -22,6 +22,7 @@
 </template>
 
 <script>
+  import {SHORT_LINK_PREFIX, PROCESS_OK_CODE, FILE_NAME_MAX_LENGTH} from "@/util/config"
   export default {
     name: "landing",
     data() {
@@ -41,8 +42,8 @@
       };
       return {
         userInfo: {
-          name: 'admin',
-          pwd: '123456',
+          userName: 'admin',
+          password: '123456',
         },
         loading: false,
         rules2: {
@@ -60,11 +61,14 @@
         this.$refs[formName].validate((valid) => {
           if (valid) {
             this.loading = true;
-            setTimeout(() => {
-              this.loading = false;
-              this.$router.push("/charts");
-            }, 300)
+            console.log(this.Api)
+            this.Api.login('swagger/login', 'post',this.userInfo , true).then(res => {
+              if (res.data.code === PROCESS_OK_CODE) {
 
+              }else{
+                this.loading = false;
+              }
+            })
           } else {
             return false;
           }

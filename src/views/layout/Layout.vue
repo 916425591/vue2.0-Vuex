@@ -2,7 +2,7 @@
   <div class="app-wrapper" >
     <!--<sidebar class="sidebar-container"></sidebar>-->
     <div class="main-container">
-      <navbar></navbar>
+      <!--<navbar></navbar>-->
       <!--<tags-view></tags-view>-->
       <!--<app-main></app-main>-->
     </div>
@@ -10,7 +10,6 @@
 </template>
 <script>
   import { Navbar, Sidebar, AppMain, TagsView } from './components'
-
   export default {
     name: 'layout',
     components: {Navbar, Sidebar, AppMain, TagsView},
@@ -28,6 +27,9 @@
       //     mobile: this.device === 'mobile'
       //   }
       // }
+    },
+    mounted(){
+      console.log(this.$store.state.auth.userName,)
     }
   }
 </script>

@@ -1,4 +1,4 @@
-export  const  API_ROOT =(process.env.NODE_ENV ==='home')? '': '';//测试网址
+export  const  API_ROOT =(process.env.NODE_ENV ==='home')? 'http://127.0.0.1:8090/dcimRXD/': 'http://127.0.0.1:8090/dcimRXD/';//测试网址
 export  const  SOCKET_IO_ROOT = (process.env.NODE_ENV==='home')? '': ''; //实际网址
 //前端服务器地址
 export  const  WEB_HOST=(process.env.NODE_ENV ==='home')?'webDise':''
